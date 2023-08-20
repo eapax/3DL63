@@ -8,6 +8,7 @@ from scipy.integrate import odeint, solve_ivp
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
+from pathlib import Path
 
 def l63(x, t, sigma, beta, rho):
     """
@@ -20,33 +21,39 @@ def l63(x, t, sigma, beta, rho):
     return up, vp, wp
 
 if __name__=='__main__':
-    
+
     # Lorenz paramters and initial conditions
     sigma, beta, rho = 10, 2.667, 28
     u0, v0, w0 = 0, 1, 1.05
-    
+
     # Maximum time point and total number of time points
     tmax, n = 100, 10000
-    
+
     # Integrate
     t = np.linspace(0, tmax, n)
     f = odeint(l63, (u0, v0, w0), t, args=(sigma, beta, rho))
     x, y, z = f.T
-    
-    # Save output data
+
+    # Make 'assets' folder to save data in
+    Path('../assets').mkdir(exist_ok=True)
+
+    # Save output data as npy
+    np.save(f'../assets/l63_point_cloud.npy', f, allow_pickle=True)
+
+    # Save output data as csv
     df = pd.DataFrame({
         'x': x,
         'y': y,
         'z': z,
     })
-    df.to_csv('../data/l63_point_cloud.csv')
-    
+    df.to_csv('../assets/l63_point_cloud.csv')
+
     # Bin
     bins = 10
     H, edges = np.histogramdd(f, bins=bins, density=True) 
-    
-    # Save binned data
-    np.save(f'../data/l63_binned_densities_{bins}bins_.npy', H, allow_pickle=True)
-    np.save(f'../data/l63_binned_edges_{bins}bins.npy', edges, allow_pickle=True)
-    
+
+    # Save binned data as npy
+    np.save(f'../assets/l63_binned_densities_{bins}bins_.npy', H, allow_pickle=True)
+    np.save(f'../assets/l63_binned_edges_{bins}bins.npy', edges, allow_pickle=True)
+
 

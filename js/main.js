@@ -1,75 +1,85 @@
+// Import modules
 import * as THREE from 'three';
+import npyjs from 'npyjs';
+import ndarray from 'ndarray';
 
-// ---- BEGIN PRELIMIARIES ---- //
+// Initiate global variables
+let camera, scene, renderer, light;
+let geometry, material, point;
+let pointCloud;
 
-// Grab html element to contain scene
-const container = document.querySelector( '#scene-container' );
+// Function to run on loading website
+function init() {
 
-// Set up scene
-const scene = new THREE.Scene();
+  // Initiate lights, camera, and scene
+  light = new THREE.AmbientLight( 0xffffff );
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
+  camera.position.z = 5;
+  scene = new THREE.Scene();
+  scene.add(light);
 
-// Set up camera
-let fov = 75;
-let aspect = window.innerWidth / window.innerHeight;
-let near = 0.1;
-let far = 500;
-const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.z = 10;
+  // Initiate renderer
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-// Initiate renderer
-const renderer = new THREE.WebGLRenderer( { antialias: true } );
-renderer.setSize( window.innerWidth, window.innerHeight);
-document.body.appendChild( renderer.domElement );
+  // Resize renderer on window resize
+  window.addEventListener('resize', function()
 
-// Initiate the animation loop
-function animate() {
-    requestAnimationFrame( animate );
-    renderer.render( scene, camera );
-}
-animate()
+    {
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    });
 
-// Deal with browser window resizes
-const setSize = ( container, camera, renderer ) => {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize( container.clientWidth, container.clientHeight );
-    renderer.setPixelRatio( window.devicePixelRatio );
-}
-
-class Resizer {
-    contructor( container, camera, renderer ) {
-        // set initial size on load
-        setSize( container, camera, renderer );
-
-        window.addEventListener("resize", () => {
-            // set the size again if a resize occurs
-            setSize( container, camera, renderer );
-            this.onResize();
-        });
+  // Load point cloud from numpy array
+  let n = new npyjs();
+  n.load('../assets/l63_point_cloud.npy').then(
+    (res) => {
+      pointCloud = ndarray( res['data'], res['shape'] );
+      addCloudToScene();
     }
+  );
 
-    onResize() {}
 }
 
-const resizer = new Resizer( container, camera, renderer);
-resizer.onResize = () => {
-    this.render();
+function animate() {
+
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+
 }
 
-function render() {
-    // draw a single frame
-    renderer.render(scene, camera);
+// Function to run once point-cloud is loaded
+
+function addCloudToScene() {
+
+  console.log('Point cloud loaded and stored in variable pointCloud');
+  console.log(pointCloud);
+  let x = pointCloud.get(20,0);
+  let y = pointCloud.get(20,1);
+  let z = pointCloud.get(20,2);
+  console.log(x,y,z);
+
+  // Points will be little spheres
+  let pointRad = 0.4;      // sphere radius
+  let pointRes = 20;       // sphere resolution
+  let pointCol = 0xE0E0E0; // sphere colour (a light grey)
+  geometry = new THREE.SphereGeometry( pointRad, pointRes, pointRes );
+//  material = new THREE.MeshStandardMaterial( { color: 0xffffff } );
+  material = new THREE.MeshNormalMaterial();
+  point = new THREE.Mesh(geometry, material);
+  console.log(point.position);
+  scene.add(point);
+
 }
 
-// ---- END PRELIMIARIES ---- //
+// ---------- Run the code. ------------ //
+init();
+animate();
+// ------------------------------------- //
 
-// Make a sphere
-let sphereRes = 5; // resolution for discretization
-let sphereCol = 0xE0E0E0; // sphere colour (a light grey)
-const geometry = new THREE.SphereGeometry( 3, sphereRes, sphereRes );
-const material = new THREE.MeshBasicMaterial( { color: sphereCol } );
-const cube = new THREE.Mesh( geometry, material );
-
-// Add cube to scene
-scene.add( cube );
