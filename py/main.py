@@ -27,18 +27,21 @@ if __name__=='__main__':
     u0, v0, w0 = 0, 1, 1.05
 
     # Maximum time point and total number of time points
-    tmax, n = 100, 10000
+    tmax, n = 1000, 100000
 
     # Integrate
     t = np.linspace(0, tmax, n)
     f = odeint(l63, (u0, v0, w0), t, args=(sigma, beta, rho))
     x, y, z = f.T
+    print(len(x))
 
     # Make 'assets' folder to save data in
-    Path('../assets').mkdir(exist_ok=True)
+    cwd = str(Path(__file__).parent.resolve())
+    assets_dir = f'{cwd}/assets'
+    Path(assets_dir).mkdir(exist_ok=True)
 
     # Save output data as npy
-    np.save(f'../assets/l63_point_cloud.npy', f, allow_pickle=True)
+    np.save(f'{assets_dir}/l63_point_cloud.npy', f, allow_pickle=True)
 
     # Save output data as csv
     df = pd.DataFrame({
@@ -46,14 +49,13 @@ if __name__=='__main__':
         'y': y,
         'z': z,
     })
-    df.to_csv('../assets/l63_point_cloud.csv')
+    df.to_csv(f'{assets_dir}/l63_point_cloud.csv')
 
     # Bin
     bins = 10
     H, edges = np.histogramdd(f, bins=bins, density=True) 
 
     # Save binned data as npy
-    np.save(f'../assets/l63_binned_densities_{bins}bins_.npy', H, allow_pickle=True)
-    np.save(f'../assets/l63_binned_edges_{bins}bins.npy', edges, allow_pickle=True)
-
+    np.save(f'{assets_dir}/l63_binned_densities_{bins}bins_.npy', H, allow_pickle=True)
+    np.save(f'{assets_dir}/l63_binned_edges_{bins}bins.npy', edges, allow_pickle=True)
 
