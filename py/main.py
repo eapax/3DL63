@@ -36,7 +36,7 @@ if __name__=='__main__':
     print(len(x))
 
     # Make 'assets' folder to save data in
-    cwd = str(Path(__file__).parent.resolve())
+    cwd = str(Path(__file__).parent.parent.resolve())
     assets_dir = f'{cwd}/assets'
     Path(assets_dir).mkdir(exist_ok=True)
 
