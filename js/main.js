@@ -3,11 +3,23 @@ import * as THREE from 'three';
 import npyjs from 'npyjs';
 import ndarray from 'ndarray';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Initiate global variables
 let camera, scene, renderer, light, controls;
-let geometry, material, point;
+let geometry, material;
 let particleTrajectory;
+
+// Points will be little spheres
+let pointRad = 0.2;      // sphere radius
+let pointRes = 20;       // sphere resolution
+let pointCol = 0xE0E0E0; // sphere colour (a light grey)
+
+let pointGeometry = new THREE.SphereGeometry( pointRad, pointRes, pointRes );
+let pointMaterial = new THREE.MeshNormalMaterial();
+// pointMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff } );
+
+let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 
 // Function to run on loading website
 function init() {
@@ -17,9 +29,9 @@ function init() {
 
   camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-  // Set camera position -- not currently working...
+  // Set camera position 
   camera.position.set( 0, 0, 50 );
-  //camera.lookAt( new THREE.Vector3( 0, 0, 1000 ) );
+  //camera.lookAt( new THREE.Vector3( 0, 0, 1000 ) ); // not working currently
 
   scene = new THREE.Scene();
   scene.add( light );
@@ -54,11 +66,24 @@ function init() {
 
       // Draw point cloud
       particleTrajectory = ndarray( res['data'], res['shape'] );
-      console.log('Particle trajectory loaded and stored in variable particleTrajectory pointCloud');
-      console.log( particleTrajectory );
-      //drawPointCloud( particleTrajectory );
+      let numPoints = particleTrajectory.shape[0];
+      let pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
 
-      drawOrbit( particleTrajectory );
+      // Make orbit
+      let orbit = makeOrbit( particleTrajectory, numPoints, 1 );
+
+      // Add point cloud to scene
+      // for ( const point of pointCloud ) {
+      //   scene.add(point);
+      // }
+
+      // Remove point cloud from scene
+      //for ( const point of pointCloud ) {
+      //  scene.remove(point);
+      //}
+
+      // Add orbit to scene
+      scene.add( orbit );
 
     }
   );
@@ -73,28 +98,33 @@ function animate() {
 
 }
 
-// Function to run once point-cloud is loaded
-function drawPointCloud( points ) {
+// Function to make a list of point (i.e. sphere) Meshes
+function makePointCloud( points, numPoints, skipLength ) {
 
-  for ( let i=1; i<100000; i+=50 ) {
+  let x, y, z, point;
+  let pointCloud = [];
 
-    let x = points.get( i, 0 );
-    let y = points.get( i, 1 );
-    let z = points.get( i, 2 );
+  for ( let i=0; i<numPoints; i+=skipLength ) {
 
-    drawPoint( x, y, z );
+    x = points.get( i, 0 );
+    y = points.get( i, 1 );
+    z = points.get( i, 2 );
+
+    point = new THREE.Mesh( pointGeometry, pointMaterial );
+    point.position.set( x, y, z );
+    pointCloud.push( point );
 
   }
 
-  drawPoint( 0, 0, 1 );
+  return pointCloud
 
 }
 
 // Function to draw an orbit (i.e. a particle trajectory)
-function drawOrbit( points ) {
+function makeOrbit( points, numPoints, numSkip ) {
 
-  let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
   let startPoint, endPoint;
+  let lineSegmentGeometries = [];
 
   startPoint = [
     points.get( 0, 0 ),
@@ -102,47 +132,38 @@ function drawOrbit( points ) {
     points.get( 0, 2 ),
   ];
 
-  for ( let i=1; i<100000; i+=1 ) {
+  for ( let i=1; i<numPoints; i+=numSkip ) {
 
    endPoint = [
      points.get( i, 0 ),
      points.get( i, 1 ),
      points.get( i, 2 ),
    ];
-   drawLineSegment( startPoint, endPoint, lineMaterial );
+
+   let geometry = makeLineSegmentGeometry( startPoint, endPoint );
+   lineSegmentGeometries.push( geometry );
+
    startPoint = endPoint;
 
   }
 
-}
+  let mergedGeometry = BufferGeometryUtils.mergeGeometries( lineSegmentGeometries );
+  let orbit = new THREE.Line( mergedGeometry, lineMaterial );
 
-function drawPoint( x, y, z ) {
-
-  // Points will be little spheres
-  let pointRad = 0.4;      // sphere radius
-  let pointRes = 20;       // sphere resolution
-  let pointCol = 0xE0E0E0; // sphere colour (a light grey)
-  geometry = new THREE.SphereGeometry( pointRad, pointRes, pointRes );
-//  material = new THREE.MeshStandardMaterial( { color: 0xffffff } );
-  material = new THREE.MeshNormalMaterial();
-  point = new THREE.Mesh(geometry, material);
-  scene.add(point);
-  point.position.set( x, y, z );
+  return orbit
 
 }
 
-function drawLineSegment( startPoint, endPoint, lineMaterial ) {
+function makeLineSegmentGeometry( startPoint, endPoint ) {
 
   // Following example at threejs.org/docs/#manual/en/introduction/Drawing-lines
 
   let points = [];
   points.push( new THREE.Vector3( startPoint[0], startPoint[1], startPoint[2] ) );
   points.push( new THREE.Vector3( endPoint[0], endPoint[1], endPoint[2] ) );
-
   let geometry = new THREE.BufferGeometry().setFromPoints( points );
-  let line = new THREE.Line( geometry, lineMaterial );
 
-  scene.add( line );
+  return geometry
 
 }
 
