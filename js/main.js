@@ -1,14 +1,16 @@
 // Import modules
-import * as THREE from 'three';
 import npyjs from 'npyjs';
 import ndarray from 'ndarray';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 // Initiate global variables
 let camera, scene, renderer, light, controls;
 let geometry, material;
-let particleTrajectory;
+let orbit, pointCloud;
+let gui;
 
 // Points will be little spheres
 let pointRad = 0.2;      // sphere radius
@@ -20,6 +22,11 @@ let pointMaterial = new THREE.MeshNormalMaterial();
 // pointMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff } );
 
 let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+const MODEL_NAMES = [
+  'Point cloud',
+  'Orbit',
+];
 
 // Function to run on loading website
 function init() {
@@ -65,25 +72,26 @@ function init() {
     (res) => {
 
       // Draw point cloud
-      particleTrajectory = ndarray( res['data'], res['shape'] );
+      let particleTrajectory = ndarray( res['data'], res['shape'] );
       let numPoints = particleTrajectory.shape[0];
-      let pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
+      pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
+
+      // Plotting too long an orbit becomes a bit dense, so cap at length 25000
+      let numOrbitPoints = Math.min( numPoints, 25000 );
 
       // Make orbit
-      let orbit = makeOrbit( particleTrajectory, numPoints, 1 );
-
-      // Add point cloud to scene
-      // for ( const point of pointCloud ) {
-      //   scene.add(point);
-      // }
-
-      // Remove point cloud from scene
-      //for ( const point of pointCloud ) {
-      //  scene.remove(point);
-      //}
+      orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
 
       // Add orbit to scene
-      scene.add( orbit );
+      //scene.add( orbit );
+
+      // Add point cloud to scene
+      for ( const point of pointCloud ) {
+        scene.add(point);
+      }
+
+      // Add GUI with drop-down list to select orbit or point cloud
+      createGUI();
 
     }
   );
@@ -164,6 +172,44 @@ function makeLineSegmentGeometry( startPoint, endPoint ) {
   let geometry = new THREE.BufferGeometry().setFromPoints( points );
 
   return geometry
+
+}
+
+function createGUI() {
+
+//  const guiContainer = document.getElementById( 'gui-container' );
+//  gui = new GUI( { 'container': guiContainer } );
+  gui = new GUI();
+
+  const folder1 = gui.addFolder( 'Representation' );
+
+  const dropdown = folder1.add( MODEL_NAMES, 'Representation', MODEL_NAMES );
+
+  // Define default value as first item in list
+  dropdown.setValue( MODEL_NAMES[0] );
+
+  dropdown.onChange( switchModel );
+
+}
+
+function switchModel( name ) {
+
+  // Remove point cloud and orbit
+  for ( const point of pointCloud ) {
+    scene.remove( point );
+  }
+  scene.remove( orbit );
+
+  if ( name == 'Point cloud' ) {
+      for ( const point of pointCloud ) {
+        scene.add(point);
+      }
+      //console.log(pointCloud);
+  } else if ( name == 'Orbit' ) {
+      scene.add( orbit );
+  } else {
+      console.log('Warning! Attempting to switch GUI to unknown model ', name)
+  }
 
 }
 
