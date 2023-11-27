@@ -35,7 +35,7 @@ const AX_ORIGIN = [-20, -20, 0];
 const AX_LEN = 12;
 const AX_TEXT_SCALE = 0.3;
 const AX_TEXT_OFFSET = 1.0;
-const AX_COLOUR = '#00ffff';
+const AX_COLOUR = '#FBF7F5';     // Chalk white
 
 // The point that the camera will look at
 const X0 = 0;

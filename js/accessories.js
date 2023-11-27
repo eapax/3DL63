@@ -56,7 +56,6 @@ function addText( scene, txt, colour, x, y, z, scale ) {
 function addAxis( scene, axOrigin, axLen, axColour, axTextOffset, textScale ) {
 
   //  const textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000, specular: 0xffffff } );
-  const textColour = '#647A70';
   const lineMaterial = new THREE.LineBasicMaterial( { color: axColour } );
 
   // Build axes from 3 lines
