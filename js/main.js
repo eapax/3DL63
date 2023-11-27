@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+import { addAxis } from './accessories.js';
 
 // Initiate global variables
 let camera, scene, renderer, light, controls;
@@ -13,33 +14,49 @@ let orbit, pointCloud;
 let gui;
 
 // Points will be little spheres
-let pointRad = 0.2;      // sphere radius
+let pointRad = 0.1;      // sphere radius
 let pointRes = 20;       // sphere resolution
 let pointCol = 0xE0E0E0; // sphere colour (a light grey)
-
 let pointGeometry = new THREE.SphereGeometry( pointRad, pointRes, pointRes );
 let pointMaterial = new THREE.MeshNormalMaterial();
 // pointMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff } );
 
+// Set material for orbit path
 let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 
+// Define model names
 const MODEL_NAMES = [
-  'Point cloud',
   'Orbit',
+  'Point cloud',
 ];
+
+// Define parameters for axis
+const AX_ORIGIN = [-20, -20, 0];
+const AX_LEN = 12;
+const AX_TEXT_SCALE = 0.3;
+const AX_TEXT_OFFSET = 1.0;
+const AX_COLOUR = '#00ffff';
+
+// The point that the camera will look at
+const X0 = 0;
+const Y0 = 0;
+const Z0 = 20;
+
+// The point that the camera is initially placed at
+const X1 = 45;
+const Y1 = -60;
+const Z1 = 30;
+
+// Set "up" direction as Z (threejs uses Y by default)
+THREE.Object3D.DEFAULT_UP.set( 0, 0, 1 );
 
 // Function to run on loading website
 function init() {
 
   // Initiate lights, camera, and scene
   light = new THREE.AmbientLight( 0xffffff );
-
   camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-  // Set camera position 
-  camera.position.set( 0, 0, 50 );
-  //camera.lookAt( new THREE.Vector3( 0, 0, 1000 ) ); // not working currently
-
+  camera.position.set( X1, Y1, Z1 );
   scene = new THREE.Scene();
   scene.add( light );
 
@@ -50,7 +67,6 @@ function init() {
 
   // Resize renderer on window resize
   window.addEventListener( 'resize', function()
-
     {
       var width = window.innerWidth;
       var height = window.innerHeight;
@@ -58,13 +74,15 @@ function init() {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     }
-
   );
 
   // Add controls for moving / rotating / zooming of camera
   controls = new OrbitControls( camera, renderer.domElement );
-
+  controls.target.set( X0, Y0, Z0 );
   controls.update();
+
+  // Add axis
+  addAxis( scene, AX_ORIGIN, AX_LEN, AX_COLOUR, AX_TEXT_OFFSET, AX_TEXT_SCALE );
 
   // Load point cloud from numpy array
   let n = new npyjs();
@@ -83,12 +101,12 @@ function init() {
       orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
 
       // Add orbit to scene
-      //scene.add( orbit );
+      scene.add( orbit );
 
       // Add point cloud to scene
-      for ( const point of pointCloud ) {
-        scene.add(point);
-      }
+      //for ( const point of pointCloud ) {
+      //  scene.add(point);
+      //}
 
       // Add GUI with drop-down list to select orbit or point cloud
       createGUI();
