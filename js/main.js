@@ -196,9 +196,8 @@ function makeLineSegmentGeometry( startPoint, endPoint ) {
 
 function createGUI() {
 
-//  const guiContainer = document.getElementById( 'gui-container' );
-//  gui = new GUI( { 'container': guiContainer } );
-  gui = new GUI();
+  const guiContainer = document.getElementById( 'gui-container' );
+  gui = new GUI( { 'container': guiContainer } );
 
   const folder1 = gui.addFolder( 'Representation' );
 

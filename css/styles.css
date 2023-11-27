@@ -8,12 +8,12 @@ body {
 
 #equations {
   position: absolute;
+  top: 20px;
+  left: 20px;
   color: #FBF7F5;     /* chalk white */
-  background: black;
   font-size: 36px;
   width: 300px;
-  z-index: 100;
-  pointer-events: none;
+  z-index: 1;
 }
 
 #scene-container {
@@ -22,3 +22,10 @@ body {
   height: 100%;
 }
 
+#gui-container {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  z-index:10;
+  pointer-events: auto; /* otherwise inherits as none from container */
+}
