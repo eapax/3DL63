@@ -78,6 +78,7 @@ function init() {
 
   // Add controls for moving / rotating / zooming of camera
   controls = new OrbitControls( camera, renderer.domElement );
+  //controls = new OrbitControls( camera, document.body );
   controls.target.set( X0, Y0, Z0 );
   controls.update();
 
