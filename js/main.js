@@ -86,31 +86,41 @@ function init() {
   addAxis( scene, AX_ORIGIN, AX_LEN, AX_COLOUR, AX_TEXT_OFFSET, AX_TEXT_SCALE );
 
   // Load point cloud from numpy array
-  let n = new npyjs();
-  n.load('../assets/l63_point_cloud.npy').then(
+//  let n = new npyjs();
+//  n.load('../assets/l63_point_cloud.npy').then(
+//    (res) => {
+//
+//      // Draw point cloud
+//      let particleTrajectory = ndarray( res['data'], res['shape'] );
+//      let numPoints = particleTrajectory.shape[0];
+//      pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
+//
+//      // Plotting too long an orbit becomes a bit dense, so cap at length 25000
+//      let numOrbitPoints = Math.min( numPoints, 25000 );
+//
+//      // Make orbit
+//      orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
+//
+//      // Add orbit to scene
+//      scene.add( orbit );
+//
+//      // Add point cloud to scene
+//      //for ( const point of pointCloud ) {
+//      //  scene.add(point);
+//      //}
+//
+//      // Add GUI with drop-down list to select orbit or point cloud
+//      createGUI();
+//
+//    }
+//  );
+
+  let n2 = new npyjs();
+  n2.load('../assets/l63_hist.npy').then(
     (res) => {
 
-      // Draw point cloud
-      let particleTrajectory = ndarray( res['data'], res['shape'] );
-      let numPoints = particleTrajectory.shape[0];
-      pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
-
-      // Plotting too long an orbit becomes a bit dense, so cap at length 25000
-      let numOrbitPoints = Math.min( numPoints, 25000 );
-
-      // Make orbit
-      orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
-
-      // Add orbit to scene
-      scene.add( orbit );
-
-      // Add point cloud to scene
-      //for ( const point of pointCloud ) {
-      //  scene.add(point);
-      //}
-
-      // Add GUI with drop-down list to select orbit or point cloud
-      createGUI();
+      let histData = ndarray( res['data'], res['shape'] );
+      makeHistogram( histData, 2, 1000 );
 
     }
   );
@@ -124,6 +134,34 @@ function animate() {
   renderer.render(scene, camera);
 
 }
+
+function makeHistogram( histData, binwidth, opacityFactor ) {
+
+  let numBins = histData.shape[0];
+
+  for ( let i=0; i<numBins; i+=1 ) {
+
+    let x = histData.get( i, 0 );
+    let y = histData.get( i, 1 );
+    let z = histData.get( i, 2 );
+    let p = histData.get( i, 3 );
+
+    // Set material for 3D probability distribution (histogram made of cubes)
+    let cubeGeometry = new THREE.BoxGeometry( binwidth, binwidth, binwidth );
+    let cubeMaterial = new THREE.MeshBasicMaterial( {
+      color: 0xff66ff,
+      opacity: p*opacityFactor,
+      transparent: true,
+    } );
+    let cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
+    scene.add( cube );
+
+    cube.position.set( x, y, z );
+
+  }
+
+}
+
 
 // Function to make a list of point (i.e. sphere) Meshes
 function makePointCloud( points, numPoints, skipLength ) {

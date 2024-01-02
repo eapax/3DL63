@@ -1,5 +1,5 @@
 '''
-Code for L63 integration adapted from 
+Code for L63 integration adapted from
 https://gist.github.com/brews/37253ff1a31dc4525c5821f2436e39f0
 '''
 
@@ -33,7 +33,10 @@ if __name__=='__main__':
     t = np.linspace(0, tmax, n)
     f = odeint(l63, (u0, v0, w0), t, args=(sigma, beta, rho))
     x, y, z = f.T
-    print(len(x))
+
+    print('x range is ', min(x), max(x))
+    print('y range is ', min(y), max(y))
+    print('z range is ', min(z), max(z))
 
     # Make 'assets' folder to save data in
     cwd = str(Path(__file__).parent.parent.resolve())
@@ -44,18 +47,25 @@ if __name__=='__main__':
     np.save(f'{assets_dir}/l63_point_cloud.npy', f, allow_pickle=True)
 
     # Save output data as csv
-    df = pd.DataFrame({
-        'x': x,
-        'y': y,
-        'z': z,
-    })
+    df = pd.DataFrame({'x': x, 'y': y, 'z': z})
     df.to_csv(f'{assets_dir}/l63_point_cloud.csv')
 
     # Bin
-    bins = 10
-    H, edges = np.histogramdd(f, bins=bins, density=True) 
+    xvals = range(-20, 22, 2)
+    yvals = range(-28, 30, 2)
+    zvals = range(0, 52, 2)
+    H, edges = np.histogramdd(f, bins=(xvals, yvals, zvals), density=True)
 
-    # Save binned data as npy
-    np.save(f'{assets_dir}/l63_binned_densities_{bins}bins_.npy', H, allow_pickle=True)
-    np.save(f'{assets_dir}/l63_binned_edges_{bins}bins.npy', edges, allow_pickle=True)
+    # Loop over all bins and restructure histogram as list of nonempty bins
+    hist = []
+    thresh = 1e-21
+    for i, x in enumerate(xvals[:-1]):
+        for j, y in enumerate(yvals[:-1]):
+            for k, z in enumerate(zvals[:-1]):
+                p = H[i, j, k]
+                if p > thresh:
+                    hist.append([x, y, z, p])
+
+    # Save histogram as npy
+    np.save(f'{assets_dir}/l63_hist.npy', hist, allow_pickle=True)
 
