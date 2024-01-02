@@ -3,14 +3,14 @@ body {
 }
 
 .container {
-  pointer-events: none;
+  pointer-events: none;  /* allow mouse clicks to reach divs within */
 }
 
 #equations {
   position: absolute;
   top: 20px;
   left: 20px;
-  color: #FBF7F5;     /* chalk white */
+  color: #FBF7F5;        /* chalk white */
   font-size: 36px;
   width: 300px;
   z-index: 1;
@@ -26,6 +26,6 @@ body {
   position: absolute;
   right: 20px;
   top: 20px;
-  z-index:10;
-  pointer-events: auto; /* otherwise inherits as none from container */
+  z-index: 2;
+  pointer-events: auto;  /* otherwise inherits as none from container */
 }

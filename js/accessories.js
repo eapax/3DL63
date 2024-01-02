@@ -21,7 +21,6 @@ function addLine( scene, startPoint, endPoint, lineMaterial ) {
 
 function addText( scene, txt, colour, x, y, z, scale ) {
 
-  // Use NWS color #647A70 for text
   const textMaterial = new THREE.MeshBasicMaterial( { color: colour } );
 
   var loader = new FontLoader();
@@ -55,7 +54,6 @@ function addText( scene, txt, colour, x, y, z, scale ) {
 
 function addAxis( scene, axOrigin, axLen, axColour, axTextOffset, textScale ) {
 
-  //  const textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000, specular: 0xffffff } );
   const lineMaterial = new THREE.LineBasicMaterial( { color: axColour } );
 
   // Build axes from 3 lines
@@ -69,7 +67,6 @@ function addAxis( scene, axOrigin, axLen, axColour, axTextOffset, textScale ) {
 
   // Add labels next to axes
   let delta = axLen + axTextOffset;
-
   addText( scene, 'x', axColour, axOrigin[0] + delta, axOrigin[1], axOrigin[2], textScale );
   addText( scene, 'y', axColour, axOrigin[0], axOrigin[1] + delta, axOrigin[2], textScale );
   addText( scene, 'z', axColour, axOrigin[0], axOrigin[1], axOrigin[2] + delta, textScale );
