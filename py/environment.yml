@@ -1,0 +1,8 @@
+name: 3DL63
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - scipy=1.11
+  - numpy=1.26
+  - pandas=2.1

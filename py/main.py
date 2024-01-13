@@ -5,8 +5,6 @@ https://gist.github.com/brews/37253ff1a31dc4525c5821f2436e39f0
 
 import numpy as np
 from scipy.integrate import odeint, solve_ivp
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 from pathlib import Path
 
@@ -30,18 +28,17 @@ if __name__=='__main__':
     tmax, n = 1000, 100000
 
     # Integrate
+    print('Integrating L63 equations...')
     t = np.linspace(0, tmax, n)
     f = odeint(l63, (u0, v0, w0), t, args=(sigma, beta, rho))
     x, y, z = f.T
 
-    print('x range is ', min(x), max(x))
-    print('y range is ', min(y), max(y))
-    print('z range is ', min(z), max(z))
-
     # Make 'assets' folder to save data in
     cwd = str(Path(__file__).parent.parent.resolve())
+
     assets_dir = f'{cwd}/assets'
     Path(assets_dir).mkdir(exist_ok=True)
+    print(f'Saving data in folder {assets_dir}')
 
     # Save output data as npy
     np.save(f'{assets_dir}/l63_point_cloud.npy', f, allow_pickle=True)
@@ -69,3 +66,4 @@ if __name__=='__main__':
     # Save histogram as npy
     np.save(f'{assets_dir}/l63_hist.npy', hist, allow_pickle=True)
 
+    print('Script complete.')
