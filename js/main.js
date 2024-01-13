@@ -10,7 +10,7 @@ import { addAxis } from './accessories.js';
 // Initiate global variables
 let camera, scene, renderer, light, controls;
 let geometry, material;
-let orbit, pointCloud;
+let orbit, pointCloud, hist;
 let gui;
 
 // Points will be little spheres
@@ -26,6 +26,7 @@ let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 
 // Define model names
 const MODEL_NAMES = [
+  'Histogram',
   'Orbit',
   'Point cloud',
 ];
@@ -43,9 +44,9 @@ const Y0 = 0;
 const Z0 = 20;
 
 // The point that the camera is initially placed at
-const X1 = 45;
-const Y1 = -60;
-const Z1 = 30;
+const X1 = 31;
+const Y1 = -41;
+const Z1 = 21;
 
 // Set "up" direction as Z (threejs uses Y by default)
 THREE.Object3D.DEFAULT_UP.set( 0, 0, 1 );
@@ -85,42 +86,38 @@ function init() {
   // Add axis
   addAxis( scene, AX_ORIGIN, AX_LEN, AX_COLOUR, AX_TEXT_OFFSET, AX_TEXT_SCALE );
 
-  // Load point cloud from numpy array
-//  let n = new npyjs();
-//  n.load('../assets/l63_point_cloud.npy').then(
-//    (res) => {
-//
-//      // Draw point cloud
-//      let particleTrajectory = ndarray( res['data'], res['shape'] );
-//      let numPoints = particleTrajectory.shape[0];
-//      pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
-//
-//      // Plotting too long an orbit becomes a bit dense, so cap at length 25000
-//      let numOrbitPoints = Math.min( numPoints, 25000 );
-//
-//      // Make orbit
-//      orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
-//
-//      // Add orbit to scene
-//      scene.add( orbit );
-//
-//      // Add point cloud to scene
-//      //for ( const point of pointCloud ) {
-//      //  scene.add(point);
-//      //}
-//
-//      // Add GUI with drop-down list to select orbit or point cloud
-//      createGUI();
-//
-//    }
-//  );
-
+  // Load point cloud and histogram data from numpy arrays
+  // Note: do loading sequencially instead of asynchronously, which is inefficient but works
+  let n1 = new npyjs();
   let n2 = new npyjs();
-  n2.load('../assets/l63_hist.npy').then(
-    (res) => {
+  n1.load('../assets/l63_point_cloud.npy').then(
+    (res1) => {
+      n2.load('../assets/l63_hist.npy').then(
+        (res2) => {
 
-      let histData = ndarray( res['data'], res['shape'] );
-      makeHistogram( histData, 2, 1000 );
+          // Define data arrays
+          let particleTrajectory = ndarray( res1['data'], res1['shape'] );
+          let histData = ndarray( res2['data'], res2['shape'] );
+
+          // Plotting too long an orbit becomes a bit dense, so cap at length 25000
+          let numPoints = particleTrajectory.shape[0];
+          let numOrbitPoints = Math.min( numPoints, 25000 );
+
+          // Make 3D data structures
+          hist = makeHistogram( histData, 1, 1000 );
+          pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
+          orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
+
+          // Add histogram to scene
+          for ( const cube of hist ) {
+            scene.add( cube );
+          }
+
+          // Add GUI with drop-down list to select orbit or point cloud
+          createGUI();
+
+        }
+      )
 
     }
   );
@@ -137,6 +134,7 @@ function animate() {
 
 function makeHistogram( histData, binwidth, opacityFactor ) {
 
+  let hist = [];
   let numBins = histData.shape[0];
 
   for ( let i=0; i<numBins; i+=1 ) {
@@ -154,11 +152,12 @@ function makeHistogram( histData, binwidth, opacityFactor ) {
       transparent: true,
     } );
     let cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
-    scene.add( cube );
-
     cube.position.set( x, y, z );
+    hist.push( cube );
 
   }
+
+  return hist
 
 }
 
@@ -254,13 +253,20 @@ function switchModel( name ) {
   for ( const point of pointCloud ) {
     scene.remove( point );
   }
+  for ( const cube of hist ) {
+    scene.remove( cube );
+  }
   scene.remove( orbit );
 
-  if ( name == 'Point cloud' ) {
-      for ( const point of pointCloud ) {
-        scene.add(point);
-      }
-      //console.log(pointCloud);
+  if ( name == 'Histogram' ) {
+    for ( const cube of hist ) {
+      scene.add( cube );
+    }
+  }
+  else if ( name == 'Point cloud' ) {
+    for ( const point of pointCloud ) {
+      scene.add( point );
+    }
   } else if ( name == 'Orbit' ) {
       scene.add( orbit );
   } else {

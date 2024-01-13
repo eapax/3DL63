@@ -48,9 +48,9 @@ if __name__=='__main__':
     df.to_csv(f'{assets_dir}/l63_point_cloud.csv')
 
     # Bin
-    xvals = range(-20, 22, 2)
-    yvals = range(-28, 30, 2)
-    zvals = range(0, 52, 2)
+    xvals = range(-20, 22, 1)
+    yvals = range(-28, 30, 1)
+    zvals = range(0, 52, 1)
     H, edges = np.histogramdd(f, bins=(xvals, yvals, zvals), density=True)
 
     # Loop over all bins and restructure histogram as list of nonempty bins
