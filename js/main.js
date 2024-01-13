@@ -104,7 +104,7 @@ function init() {
           let numOrbitPoints = Math.min( numPoints, 25000 );
 
           // Make 3D data structures
-          hist = makeHistogram( histData, 2, 1000 );
+          hist = makeHistogram( histData, 1, 1000 );
           pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
           orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
 
