@@ -9,3 +9,12 @@
 * To view the web app locally, run `npx vite`. This should set up a local
   web server which can be accessed via your browser at
   [localhost:5173](http://localhost:5173/).
+
+# Building for external deployment
+
+To build the web app for deployment on an external web server,
+run the `npx vite build` command. This will build the app
+(handling all of the import statements) to a new folder called
+`dist`. Before this app can be deployed, the .npy and fonts
+files in `assets` will need to be copied over to `dist/assets`.
+A simple bash script which automates this is included as `build.sh`.

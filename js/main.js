@@ -26,7 +26,7 @@ let lineMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
 
 // Define model names
 const MODEL_NAMES = [
-  'Histogram',
+  'Probability distribution',
   'Orbit',
   'Point cloud',
 ];
@@ -87,7 +87,7 @@ function init() {
   addAxis( scene, AX_ORIGIN, AX_LEN, AX_COLOUR, AX_TEXT_OFFSET, AX_TEXT_SCALE );
 
   // Load point cloud and histogram data from numpy arrays
-  // Note: do loading sequencially instead of asynchronously, which is inefficient but works
+  // Note: currently loading is sequencial instead of asynchronous, which is inefficient but works
   let n1 = new npyjs();
   let n2 = new npyjs();
   n1.load('../assets/l63_point_cloud.npy').then(
@@ -104,7 +104,7 @@ function init() {
           let numOrbitPoints = Math.min( numPoints, 25000 );
 
           // Make 3D data structures
-          hist = makeHistogram( histData, 1, 1000 );
+          hist = makeHistogram( histData, 1, 250 );
           pointCloud = makePointCloud( particleTrajectory, numPoints, 25 );
           orbit = makeOrbit( particleTrajectory, numOrbitPoints, 1 );
 
@@ -115,13 +115,10 @@ function init() {
 
           // Add GUI with drop-down list to select orbit or point cloud
           createGUI();
-
         }
       )
-
     }
   );
-
 }
 
 function animate() {
@@ -258,7 +255,7 @@ function switchModel( name ) {
   }
   scene.remove( orbit );
 
-  if ( name == 'Histogram' ) {
+  if ( name == 'Probability distribution' ) {
     for ( const cube of hist ) {
       scene.add( cube );
     }
